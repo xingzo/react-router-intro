@@ -1,31 +1,46 @@
-# Part II: Adding APIs
+# Stock Trader Live
 
 In this portion of the lab, your stock tracking app will be communicating with two APIs...
   1. [GA Stocks API](https://ga-stocks.herokuapp.com/stocks). This will be used store stocks the user wants to track.
-  1. Either [Markit on Demand](http://dev.markitondemand.com/MODApis/) which is deprecated but has functional query routes, or the robust [AlphaVantage API](https://www.alphavantage.co/). One of these can be used to retrieve the latest information about a particular stock.
+  2. [iExtrading](https://iextrading.com/developer/docs/#getting-started) which is free and requires no api keys to use.
+  3. API supports [JSONP](https://en.wikipedia.org/wiki/JSONP)
 
-Markit On Demand, though deprecated, is a potentially little easier to deal with due to the simplicity of its responses. Its responses are in `jsonp` format and you must use jQuery since Axios doesn't support `jsonp`.
+### iExtrading Info
+*no api key required*
 
-Alpha Vantage has more detailed information included in its responses, which contain nested objects. It also requires a relatively painless and fast sign-up for an API key. If you go this route, you can use Axios.
-
-This version of the stock tracking app should see the following additional functionalities...
-
-## 1. Dashboard (`/stocks`)
-
-Instead of listing the hard-coded stocks, this page should retrieve all stocks from the local Rails API (i.e., `https://ga-stocks.herokuapp.com/stocks`) and display them on the page.
+- Base URL: https://api.iextrading.com/1.0
+- Docs: https://iextrading.com/developer/docs/#stocks
+- <a href="#iextrading">Response Examples for iExtrading</a>
 
 
-## 2. Stock (`/stocks/:symbol`)
+### Useful Resources
 
-The stock information beyond name and symbol (e.g., `Current Price`, `Change`) should no longer be pulled from hard-coded data. Instead, this information should be pulled from the [Markit on Demand API](http://dev.markitondemand.com/MODApis/).
+You may find the following packages and tools useful:
+- Axios for HTTP requests
+- [Axios Cookbook](https://github.com/axios/axios/blob/master/COOKBOOK.md)
+- Alternative to axios - [jsonp](https://github.com/axios/axios/blob/master/COOKBOOK.md#jsonp) (for jsonp requests)
 
-When this view loads, a call will be made to the [Markit on Demand API](http://dev.markitondemand.com/MODApis/) that returns a JSON representation of the stock in question.
 
-> Please reference the earlier note about the Markit on Demand API and `jsonp`
+## Instructions
 
-If the API call is successful, that stock's information should be displayed on the page.
+Your finished app should be reasonably styled. A bootstrap theme has already been provided so use it to make your site neat and organized. You should also add the following features:
 
-## Bonus: Search (`/search`)
+
+### Dashboard (`/stocks`)
+
+Instead of listing the hard-coded stocks or JSON, this page should retrieve all stocks from the [GA Stocks API](https://ga-stocks.herokuapp.com/stocks) and display them on the page.
+
+
+### Stock (`/stocks/:symbol`)
+
+The stock information beyond name and symbol (e.g., `Current Price`, `Change`) should be pulled from iExtrading.
+
+When this view loads, a call will be made to the that returns a JSON representation of the stock in question. If the API call is successful, that stock's information should be displayed on the page.
+
+> Remember that you have the option to use `jsonp` to allow cross origin requests!
+
+
+### Bonus: Search (`/search`)
 
 #### Update Navigation
 
@@ -37,59 +52,89 @@ If a user visits `/search` or clicks on "Search" in the navigation bar, they sho
 
 If the API call is successful, the app should display the name and symbol of that stock below the search form. To the right of this information, there should be a "Track Stock" button.
 
-##### Markit On Demand
-
-Use the following base URL for making requests to the deprecated Markit On Demand API `http://dev.markitondemand.com/Api/v2/Quote/jsonp?symbol=`. If a user submits a stock symbol (e.g., `AAPL`) through the form, a request will be made to `http://dev.markitondemand.com/Api/v2/Quote/jsonp?symbol=AAPL` that gets a response containing a JSON representation of the searched stock.
-
-> **Important Note:** The Markit on Demand API, unfortunately, does not have CORS enabled. That means when making an API call to it from our app, we need to request `jsonp` as the data type. Axios does not support `jsonp`.
->
-> An alternative approach is to import jQuery and use AJAX. Install it first by running `$ npm install --save jquery`. Then [take a look at this snippet](https://github.com/ga-wdi-exercises/react-omdb/commit/70c28576d35e93331d37a425e45b73127f0713b3#diff-a2c44f5da6f2e8575db9456a7e28d50c) to see how we would go about using it.
->
-> When using `$.ajax`, make sure to specify `jsonp` as the `dataType`
-
-##### Alpha Vantage
-
-[Alpha Vantage Docs](https://www.alphavantage.co/documentation/)
-
-You may use Axios to interact with this API. Its responses contain nested objects like this...
-
-```js
-{
-  "Meta Data": {
-    "1. Information": "Intraday (1min) prices and volumes",
-    "2. Symbol": "MSFT",
-    "3. Last Refreshed": "2017-07-11 16:00:00",
-    "4. Interval": "1min",
-    "5. Output Size": "Compact",
-    "6. Time Zone": "US/Eastern"
-  },
-  "Time Series (1min)": {
-    "2017-07-11 16:00:00": {
-      "1. open": "70.0700",
-      "2. high": "70.1250",
-      "3. low": "69.9900",
-      "4. close": "69.9900",
-      "5. volume": "2311827"
-    },
-    "2017-07-11 15:59:00": {
-      "1. open": "70.0650",
-      "2. high": "70.0700",
-      "3. low": "70.0500",
-      "4. close": "70.0650",
-      "5. volume": "115405"
-    },
-    ... //and so so forth
-  }
-}
-```
-
-There is a very new Object method in Javascript that can be very useful when dealing with responses like this, `Object.values()`. It can extract all of the values in an object and place them into an array. See [documentation here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/values); it's an 'experimental' feature and isn't supported in IE at all.
-
-See also [Object.keys()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys).
-
-
 #### Track a Stock
 
 When the user clicks on a stock's "Track Stock" button, the following should happen...
 - A `POST` request is made to the GA API. If successful, it will add the newly-tracked stock to the database.
 - The user is redirected to the dashboard view. The tracked stock should now be visible
+
+
+##### API Response Examples
+
+<a name="iextrading"></a>
+__iExtrading__
+<details>
+<summary>`GET /stock/AAPL/batch?types=quote`</summary>
+
+```
+{
+    "quote": {
+        "symbol": "AAPL",
+        "companyName": "Apple Inc.",
+        "primaryExchange": "Nasdaq Global Select",
+        "sector": "Technology",
+        "calculationPrice": "tops",
+        "open": 173.78,
+        "openTime": 1522157400616,
+        "close": 172.77,
+        "closeTime": 1522094400439,
+        "high": 175.15,
+        "low": 173.16,
+        "latestPrice": 173.96,
+        "latestSource": "IEX real time price",
+        "latestTime": "10:49:34 AM",
+        "latestUpdate": 1522162174608,
+        "latestVolume": 9813729,
+        "iexRealtimePrice": 173.96,
+        "iexRealtimeSize": 100,
+        "iexLastUpdated": 1522162174608,
+        "delayedPrice": 173.27,
+        "delayedPriceTime": 1522161279100,
+        "previousClose": 172.77,
+        "change": 1.19,
+        "changePercent": 0.00689,
+        "iexMarketPercent": 0.03795,
+        "iexVolume": 372431,
+        "avgTotalVolume": 35600392,
+        "iexBidPrice": 173.93,
+        "iexBidSize": 100,
+        "iexAskPrice": 173.96,
+        "iexAskSize": 100,
+        "marketCap": 882675301480,
+        "peRatio": 18.91,
+        "week52High": 183.5,
+        "week52Low": 138.62,
+        "ytdChange": 0.007049991111007603
+    }
+}
+```
+
+<summary>GET /stock/AAPL/chart/1d</summary>
+
+```
+[
+    {
+        "date": "20180327",
+        "minute": "09:30",
+        "label": "09:30 AM",
+        "high": 174.06,
+        "low": 173.63,
+        "average": 173.801,
+        "volume": 5675,
+        "notional": 986323.105,
+        "numberOfTrades": 52,
+        "marketHigh": 174.1,
+        "marketLow": 173.62,
+        "marketAverage": 173.815,
+        "marketVolume": 1066145,
+        "marketNotional": 185312060.0352,
+        "marketNumberOfTrades": 2724,
+        "changeOverTime": 0,
+        "marketChangeOverTime": 0
+    },
+
+    ...
+]
+```
+
+</details>
