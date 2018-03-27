@@ -1,5 +1,8 @@
 # Stock Trader Live
 
+[Solution code can be found here.](https://git.generalassemb.ly/ga-wdi-exercises/react-router-lab/tree/solution-routing-apis
+
+
 In this portion of the lab, your stock tracking app will be communicating with two APIs...
   1. [GA Stocks API](https://ga-stocks.herokuapp.com/stocks). This will be used store stocks the user wants to track.
   2. [iExtrading](https://iextrading.com/developer/docs/#getting-started) which is free and requires no api keys to use.
